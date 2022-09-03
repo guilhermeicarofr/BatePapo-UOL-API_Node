@@ -21,8 +21,14 @@ mongo.connect().then(() => {
 });
 
 
+//separar index em app e outros arquivos(schemas, mongos, etc)
+//reaproveitar funcao de check se user online
+//reaproveiar get participants na funcao de monitorar online
+//melhorar codigos de erro e messages
 
-
+//Bonus - Sanitizar os dados de post user e message
+//Bonus - Apagar mensagem
+//Bonus - Editar mensagem
 
 const userSchema = joi.object({
     name: joi.string().required()
@@ -35,7 +41,7 @@ server.post('/participants', async (req,res) => {
     const validation = userSchema.validate({ name });
     if(validation.error) {
         console.log(validation.error);
-        return res.sendStatus(422); //melhorar messages
+        return res.sendStatus(422);
     }
     
     try {
@@ -156,6 +162,7 @@ server.post('/status', async (req,res) => {
         res.sendStatus(500);
     }
 });
+//funcao chamada no interval pra excluir usuarios offline dos participants
 
 
 
@@ -163,6 +170,5 @@ server.post('/status', async (req,res) => {
 
 
 
-
-
+//inserir um interval pra monitorar users online ou n
 server.listen(5000,()=>console.log('Server listening on port 5000...'))
