@@ -116,7 +116,22 @@ server.post('/messages', async (req,res) => {
             type,
             time
         });
-        res.statusCode(201);
+        res.sendStatus(201);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+server.get('/messages', async (req,res) => {
+    const { user } = req.headers;
+    const { limit } = (req.query);
+
+    const messagelimit = ((limit === undefined || isNaN(limit)) ? 0 : Number(limit));
+
+    try {
+        const messages = await db.collection('messages').find({ to: { $in: ['Todos',user] } }).toArray();
+        res.status(200).send(messages.splice(-messagelimit));
     } catch (error) {
         console.log(error);
         res.sendStatus(500);
