@@ -33,11 +33,9 @@ const userSchema = joi.object({
 server.post('/participants', async (req,res) => {
 
     const time = dayjs().format('HH:mm:ss');
-
     const { name } = req.body;
     
     const validation = userSchema.validate({ name });
-
     if(validation.error) {
         console.log(validation.error);
         return res.sendStatus(422); //melhorar messages
@@ -48,8 +46,7 @@ server.post('/participants', async (req,res) => {
         if(checkuser) {
             return res.sendStatus(409);
         }
-        await db.collection('participants').insertOne({name: name, lastStatus: Date.now()});
-        res.sendStatus(201);      
+        await db.collection('participants').insertOne({name: name, lastStatus: Date.now()});   
 
         await db.collection('messages').insertOne({
             from: name,
@@ -58,7 +55,7 @@ server.post('/participants', async (req,res) => {
             type: 'status',
             time: time
         });
-
+        res.sendStatus(201); 
     } catch(error) {
         console.log(error);
         res.sendStatus(500);
@@ -73,9 +70,58 @@ server.get('/participants', async (req,res) => {
         console.log(error);
         res.sendStatus(500);
     }
-})
+});
 
 
+
+
+
+
+const messageSchema = joi.object({
+    from: joi.string().required(),
+    to: joi.string().required(),
+    text: joi.string().required(),
+    type: joi.string().valid('message','private_message').required()
+});
+
+server.post('/messages', async (req,res) => {
+
+    const time = dayjs().format('HH:mm:ss');
+    const { to, text, type } = req.body;
+    let from = '';
+
+    try {
+        const checkuser = await db.collection('participants').findOne({name: req.headers.user});
+        if(checkuser) {
+            from = checkuser.name;
+        } else {
+            return res.sendStatus(422);
+        }
+
+        const validation = messageSchema.validate({
+            from,
+            to,
+            text,
+            type
+        });
+        if(validation.error) {
+            console.log(validation.error)
+            return res.sendStatus(422);
+        }
+
+        await db.collection('messages').insertOne({
+            from,
+            to,
+            text,
+            type,
+            time
+        });
+        res.statusCode(201);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
 
 
 
