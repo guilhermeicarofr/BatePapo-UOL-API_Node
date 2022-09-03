@@ -24,14 +24,11 @@ mongo.connect().then(() => {
 
 
 
-
-
 const userSchema = joi.object({
     name: joi.string().required()
 });
 
 server.post('/participants', async (req,res) => {
-
     const time = dayjs().format('HH:mm:ss');
     const { name } = req.body;
     
@@ -76,7 +73,6 @@ server.get('/participants', async (req,res) => {
 
 
 
-
 const messageSchema = joi.object({
     from: joi.string().required(),
     to: joi.string().required(),
@@ -85,7 +81,6 @@ const messageSchema = joi.object({
 });
 
 server.post('/messages', async (req,res) => {
-
     const time = dayjs().format('HH:mm:ss');
     const { to, text, type } = req.body;
     let from = '';
@@ -130,13 +125,43 @@ server.get('/messages', async (req,res) => {
     const messagelimit = ((limit === undefined || isNaN(limit)) ? 0 : Number(limit));
 
     try {
-        const messages = await db.collection('messages').find({ to: { $in: ['Todos',user] } }).toArray();
+        const messages = await db.collection('messages').find({ to:{ $in:['Todos',user]} }).toArray();
         res.status(200).send(messages.splice(-messagelimit));
     } catch (error) {
         console.log(error);
         res.sendStatus(500);
     }
 });
+
+
+
+
+
+server.post('/status', async (req,res) => {
+    const { user } = req.headers;
+
+    try {
+        const checkuser = await db.collection('participants').findOne({name: user});
+        if(!checkuser) {
+            return res.sendStatus(404);
+        }
+
+        await db.collection('participants').updateOne(
+            {_id:checkuser._id},
+            { $set:{ ...checkuser, lastStatus: Date.now()} }
+        );
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+
+
+
+
+
 
 
 
