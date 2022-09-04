@@ -129,7 +129,12 @@ server.get('/messages', async (req,res) => {
     const messagelimit = ((limit === undefined || isNaN(limit)) ? 0 : Number(limit));
 
     try {
-        const messages = await db.collection('messages').find({ to:{ $in:['Todos',user]} }).toArray();
+        const messages = await db.collection('messages').find({
+            $or: [
+                {to: {$in:['Todos',user]}},
+                {from: user}
+            ]
+        }).toArray();
         res.status(200).send(messages.splice(-messagelimit));
     } catch (error) {
         console.log(error);
