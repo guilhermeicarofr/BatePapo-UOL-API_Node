@@ -21,9 +21,9 @@ mongo.connect().then(() => {
 });
 
 
-//separar index em app e outros arquivos(schemas, mongos, etc)
+
+//separar index em app e outros arquivos(schemas, mongo, etc)
 //reaproveitar funcao de check se user online
-//reaproveiar get participants na funcao de monitorar online
 //melhorar codigos de erro e messages
 
 //Bonus - Sanitizar os dados de post user e message
@@ -74,8 +74,6 @@ server.get('/participants', async (req,res) => {
         res.sendStatus(500);
     }
 });
-
-
 
 
 
@@ -141,8 +139,6 @@ server.get('/messages', async (req,res) => {
 
 
 
-
-
 server.post('/status', async (req,res) => {
     const { user } = req.headers;
 
@@ -162,13 +158,29 @@ server.post('/status', async (req,res) => {
         res.sendStatus(500);
     }
 });
-//funcao chamada no interval pra excluir usuarios offline dos participants
 
+async function onlineMonitor() {
+    try {
+        const participants = await db.collection('participants').find().toArray();
 
+        const offline = participants.filter((user) => Date.now() - user.lastStatus > 10000);
+        console.log(`Clearing ${offline.length} offline users`);
 
+        offline.forEach(async (user) => {
+            const time = dayjs().format('HH:mm:ss');
+            await db.collection('participants').deleteOne({_id: user._id});
+            await db.collection('messages').insertOne({
+                from: user.name,
+                to: 'Todos',
+                text: 'sai da sala...',
+                type: 'status',
+                time: time
+            });
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
 
-
-
-
-//inserir um interval pra monitorar users online ou n
+setInterval(onlineMonitor,15000);
 server.listen(5000,()=>console.log('Server listening on port 5000...'))
