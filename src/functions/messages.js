@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import { stripHtml } from 'string-strip-html';
 
 import { db } from './mongo.js';
 import { messageSchema } from './../schemas/schemas.js';
@@ -10,7 +11,7 @@ dayjs.extend(utc);
 
 async function postMessage(req,res) {
     const time = dayjs().format('HH:mm:ss');
-    const { to, text, type } = req.body;
+    let { to, text, type } = req.body;
     const { user } = req.headers;
     let from = '';
 
@@ -20,6 +21,11 @@ async function postMessage(req,res) {
     } else {
         return res.sendStatus(422);
     }
+
+    from = stripHtml(from).result.trim();
+    to = stripHtml(to).result.trim();
+    text = stripHtml(text).result.trim();
+    type = stripHtml(type).result.trim();
 
     const validation = messageSchema.validate({
         from,
@@ -89,7 +95,7 @@ async function deleteMessage(req,res) {
 
 async function editMessage(req,res) {
     const { id } = req.params;
-    const { to, text, type } = req.body;
+    let { to, text, type } = req.body;
     const { user } = req.headers;
     let from = '';
 
@@ -99,6 +105,11 @@ async function editMessage(req,res) {
     } else {
         return res.sendStatus(422);
     }
+
+    from = stripHtml(from).result.trim();
+    to = stripHtml(to).result.trim();
+    text = stripHtml(text).result.trim();
+    type = stripHtml(type).result.trim();
 
     const validation = messageSchema.validate({
         from,

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import { stripHtml } from 'string-strip-html';
 
 import { db } from './mongo.js';
 import { userSchema } from './../schemas/schemas.js';
@@ -18,7 +19,9 @@ async function getParticipants(req,res) {
 
 async function loginUser(req,res) {
     const time = dayjs().format('HH:mm:ss');
-    const { name } = req.body;
+    let { name } = req.body;
+
+    name = stripHtml(name).result.trim();
     
     const validation = userSchema.validate({ name });
     if(validation.error) {

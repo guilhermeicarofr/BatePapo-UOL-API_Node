@@ -9,6 +9,7 @@ server.use(cors());
 server.use(express.json());
 
 
+
 server.get('/participants', getParticipants);
 server.post('/participants', loginUser);
 server.post('/status', stayOnline);
