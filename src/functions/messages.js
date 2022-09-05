@@ -4,6 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import { db } from './mongo.js';
 import { messageSchema } from './../schemas/schemas.js';
 import { checkOnline } from './participants.js';
+import { ObjectId } from 'mongodb';
 
 dayjs.extend(utc);
 
@@ -66,4 +67,23 @@ async function getMessages(req,res) {
     }
 }
 
-export { postMessage, getMessages };
+async function deleteMessage(req,res) {
+    const { user } = req.headers;
+    const { id } = req.params;
+
+    const checkmessage = await db.collection('messages').findOne({ _id: ObjectId(id) });
+    if (!checkmessage) {
+        return res.sendStatus(404);
+    }
+    if(checkmessage.from !== user) {
+        return res.sendStatus(401);
+    }
+
+    try {
+        await db.collection('messages').deleteOne({ _id: ObjectId(id) });
+    } catch(error) {
+        console.log(error);
+    }
+}
+
+export { postMessage, getMessages, deleteMessage };

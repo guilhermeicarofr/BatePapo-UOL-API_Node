@@ -90,7 +90,7 @@ async function onlineMonitor() {
 }
 
 async function checkOnline(name) {
-    const checkuser = await db.collection('participants').findOne({name: name});
+    const checkuser = await db.collection('participants').findOne({ name: name });
     return checkuser;
 }
 
